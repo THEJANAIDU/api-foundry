@@ -23,6 +23,20 @@ Read [Your first API](docs/FIRST_API.md) alongside the working task tracker. It 
 
 The launcher binds to localhost, generates a new credential each run, and preserves the `local-learner` identity so your tasks remain available. Stop it with Ctrl+C. Restart after changing resource definitions. Generated resources appear in `/docs`; the example UI specifically demonstrates tasks.
 
+## Make your API available
+
+Follow the [complete deployment walkthrough](docs/DEPLOYMENT.md): local Docker rehearsal, private SSH access, a public Ubuntu server with DNS/HTTPS, persistent storage, smoke tests, backups/restore, updates and rollback. Read the [executed verification report](docs/DEPLOYMENT_VERIFICATION.md) to distinguish tested container/TLS behavior from public DNS and certificate checks you must perform on your own server.
+
+Quick local deployment rehearsal (Docker must be running):
+
+```sh
+python3 scripts/configure_deploy.py
+docker compose -f compose.yaml -f deploy/compose.local.yaml up -d --build --wait
+python3 scripts/smoke_deploy.py
+```
+
+Open `http://127.0.0.1:8080` and use the private token in `.deploy-token`. Unlike the learning launcher, this runs detached and keeps a stable deployment credential. Run `python3 scripts/verify_compose.py` for the isolated persistence/backup/restore/HTTPS acceptance test.
+
 ## Manual startup and multiple identities
 
 Use this path when learning ownership/scopes or preparing your own server configuration:
@@ -81,7 +95,7 @@ docker build -t api-foundry .
 docker run --rm -p 8000:8000 -e API_TOKENS -v foundry-data:/data api-foundry
 ```
 
-Local verification: 8 tests pass on Python 3.9.6, plus a fresh launcher setup and browser CRUD/validation checks. GitHub Actions runs the integration suite on Python 3.12; see the Actions tab for its latest result. Docker and Windows execution have not been verified in this environment.
+Local verification: 8 tests pass on Python 3.9.6, plus a fresh launcher setup and browser CRUD/validation checks. GitHub Actions runs the integration suite on Python 3.12; see the Actions tab for its latest result. Container deployment, proxy routing, HTTPS with a local CA, persistence and backup/restore are covered by the deployment acceptance test. Windows execution and live public DNS/ACME issuance have not been verified in this environment.
 
 ## Repository and reuse
 

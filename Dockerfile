@@ -3,6 +3,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY app app
+COPY scripts scripts
 RUN useradd -m api && mkdir /data && chown api /data
 USER api
 ENV DATABASE_PATH=/data/foundry.db

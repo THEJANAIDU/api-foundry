@@ -1,0 +1,15 @@
+# Only for the disposable test harness: localhost receives Caddy's local CA certificate.
+services:
+  gateway:
+    image: caddy:2.10.2-alpine
+    environment:
+      API_DOMAIN: localhost
+    ports:
+      - "127.0.0.1:${TLS_TEST_PORT:-18443}:443"
+    volumes:
+      - ./deploy/Caddyfile.public:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy

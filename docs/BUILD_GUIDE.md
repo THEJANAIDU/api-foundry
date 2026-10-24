@@ -40,3 +40,7 @@ The MVP has no distributed concurrency control, optimistic write preconditions, 
 ## Standards
 
 Errors use the core Problem Details fields with `application/problem+json`: https://www.rfc-editor.org/rfc/rfc9457.html . Validation adds an `errors` extension without echoing the submitted body. Interactive contracts use OpenAPI: https://spec.openapis.org/oas/v3.1.html . Pin and review dependency upgrades before adopting them.
+
+## Deployment walkthrough
+
+Use [DEPLOYMENT.md](DEPLOYMENT.md) for executable steps and [DEPLOYMENT_VERIFICATION.md](DEPLOYMENT_VERIFICATION.md) for the tested scope. The container proxy adds TLS, gzip and a request-body limit; application identity, migrations and scaling remain explicit extension work.
