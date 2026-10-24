@@ -1,0 +1,79 @@
+# Your first API: a guided lesson
+
+Goal: build and understand a task tracker. Allow about 30–45 minutes. You need Python 3.9+ (3.12 recommended), a terminal, a browser, and internet access for the first setup. No JavaScript or API experience is assumed.
+
+## 1. Start the application
+
+Download/clone the project, open a terminal in its folder, and run:
+
+    python3 start.py
+
+On Windows use `py start.py`. The launcher creates `.venv`, installs dependencies and prints a temporary local bearer token. Open http://127.0.0.1:8000. Leave the terminal running. Paste the token into the Connect field and click Connect & load tasks.
+
+Expected result: an empty list and a GET request with status 200 in the inspector. If you see 401, check the token. Restarting generates a new token, so reconnect afterward. The token is a key; the subject `local-learner` is the identity attached to your records. Your identity stays the same between launches, which is why your tasks persist.
+
+## 2. Learn the four pieces of a request
+
+A client sends a method (what action), a URL (which resource), headers (metadata such as Authorization), and sometimes a body (data). The server sends a status, headers, and often a JSON body. JSON represents objects, lists, text, numbers and booleans. In JSON `false` is a boolean; `"false"` is text.
+
+The task screen is a client. FastAPI is the server. SQLite is a local database file. The browser calls the server; it never directly edits SQLite. Authentication determines who the client is. Authorization determines which actions that identity is permitted to perform.
+
+## 3. Create a task
+
+Enter `Build my first API` and click Create task. Read the inspector before clicking another button.
+
+Expected: POST /v1/tasks, JSON {"title":"Build my first API","done":false}, status 201, and a Location header. The response contains an id, data and links. The server generates the ID and derives the owner from the token. It rejects unexpected fields rather than allowing clients to assign ownership.
+
+Click Refresh list. Expected: GET /v1/tasks returns 200 and includes the new task. The inspector shows only the latest request, so refreshing replaces the POST display with GET.
+
+## 4. Read, update and delete
+
+Click Read to fetch one task: GET /v1/tasks/{id} returns 200. Click Toggle: PUT sends the complete title/done object and returns 200 with the updated record. Click Delete: DELETE returns 204 with no body. Refresh to update the list total. Reading a deleted ID in /docs gives 404.
+
+GET reads data without changing it. POST creates a record. PUT replaces the supplied resource data. DELETE removes a record. Repeating PUT with the same data has the same final effect. Repeated DELETE returns 404 here after the first deletion; idempotency concerns final state, not identical response codes.
+
+## 5. Make a useful mistake
+
+Expand Try a validation error and click Send invalid request. Expected: status 422 and a Problem Details error with `errors` pointing to done. The server refuses a string where a boolean is required. Your database is unchanged. In /docs, try an extra `owner` property and observe another 422. Try a request without a token and observe 401.
+
+## 6. Find the code behind the buttons
+
+- app/index.html: the browser client; `request()` uses fetch and redacts the displayed Authorization header. Text from tasks is rendered with textContent.
+- app/resources.json: the resource blueprint: tasks has title:str and done:bool.
+- app/main.py: `create_app()` builds the server; `register()` creates routes and strict models; `principal()` checks tokens; `permission()` checks scopes; `find()` filters by owner.
+- foundry.db: SQLite records and retry keys, created at runtime and excluded from Git.
+- tests/test_api.py: integration tests exercise requests and check security behavior.
+- start.py: creates an isolated environment and launches the local learning server.
+
+Follow a POST from request() to create(), the INSERT statement, and the returned JSON. That is the full path of your first API request.
+
+## 7. Generate an API for books
+
+Keep the server terminal open and open a second terminal in the project folder:
+
+    python3 scripts/add_resource.py books title:str pages:int published:bool
+
+Stop the server with Ctrl+C, restart `python3 start.py`, and reconnect with its new token. Open /docs, click Authorize, paste the token alone, and find books. POST {"title":"My first book","pages":120,"published":false}, then GET /v1/books.
+
+Expected: 201 for creation and 200 for a list containing the book. The generator changes configuration; it does not create a new frontend. The example screen stays a task tracker while /docs supports all generated resources. Do not add required fields to existing stored resources without planning a data migration.
+
+## 8. Prove it works
+
+Use the virtual environment created by the launcher:
+
+    .venv/bin/python -m pytest -q
+
+On Windows use `.venv\Scripts\python -m pytest -q`. Tests use temporary databases, not your learning records. Read the ownership test: Bob cannot fetch, replace or delete Alice's record even with its ID. The OpenAPI test checks route/schema generation, not full consumer contract compatibility.
+
+## Exercises and acceptance checks
+
+1. Generate notes with text:str archived:bool. Restart and create a note in /docs. Pass: 201, then 200 when reading it.
+2. Explain a 401 versus a 403. Answer: invalid/missing credential versus authenticated identity without the required scope. Configure a read-only credential using the manual setup in README; reads succeed and writes return 403.
+3. Use /docs to list tasks with limit=1 and follow the returned next link with the same bearer token. Pass: one item per page when at least two exist.
+4. Add a domain rule: task titles must not be empty or only whitespace. Put the check in shared validation used by both create and replace. Pass: valid titles work and whitespace is rejected on both POST and PUT; add tests for both. This rule is intentionally an exercise, not implemented yet.
+5. Retry a POST with the same Idempotency-Key and body. Use curl or a request tool because the task screen does not set this header. Pass: the same ID is returned and only one record exists. Change the body with that key: 409.
+6. Build a notes UI by adapting the task client. Pass: it calls /v1/notes with the generated schema and displays API errors without putting credentials in source control.
+
+## What comes next
+
+You now have a running local REST API and understand its request flow. Read docs/BUILD_GUIDE.md for architecture and deployment gaps, docs/TROUBLESHOOTING.md for setup problems, and docs/ROADMAP.md for advanced extensions. OIDC, PostgreSQL, GraphQL, gRPC, queues and billing are not implemented in this learning starter. Choose them when a real use case needs them.
