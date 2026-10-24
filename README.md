@@ -9,9 +9,13 @@ This is a foundation for building applications, not a promise to generate arbitr
 Clone this repository (or download and extract its source), then open a terminal in the project folder:
 
 ```sh
+git clone https://github.com/THEJANAIDU/api-foundry.git
+cd api-foundry
 python3 start.py
 # Windows: py start.py
 ```
+
+If Git is unavailable, use GitHub’s **Code → Download ZIP**, extract it, open a terminal in that folder, and run `python3 start.py`.
 
 Requires Python 3.9+ (3.12 recommended) and internet access on first run. The launcher creates `.venv`, installs dependencies, and prints a random local token. Open **http://127.0.0.1:8000**, paste the token into Connect, and create a task. Every action shows its HTTP request and response. The token is held only in the page's memory and is redacted from the inspector.
 
