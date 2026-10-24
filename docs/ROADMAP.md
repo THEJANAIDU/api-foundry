@@ -28,4 +28,4 @@ Add optional fields before requiring them; preserve existing meanings and status
 3. Read the generated contract and add an explicit response model.
 4. Build a client, add a meaningful business rule, and test it.
 5. Add a database migration and contract-diff CI gate.
-6. Choose one advan
+6. Choose one advanced protocol only when your use case requires it.
